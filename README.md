@@ -78,11 +78,13 @@ $ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 $ cmake --build build
 $ ./build/my_app
 
-address             function            calls       total ticks
-------------------  ------------------  ----------  ----------------
-      0x100168ec8   HeavyWork()              42000          12345678
-      0x100168e50   main                         1             54321
+address             function            calls       total ticks         time (ms)
+------------------  ------------------  ----------  ----------------  ----------------
+      0x100168ec8   HeavyWork()              42000          12345678            12.346
+      0x100168e50   main                         1             54321             0.054
 ```
+
+The `time` column is auto-scaled to the most readable unit (`ns`, `µs`, `ms`, or `s`) based on the hottest row. All rows use the same unit so values are directly comparable.
 
 ---
 
@@ -283,6 +285,7 @@ malevrovich-prof/
 │           ├── instrumentation.cpp     # Hot-path __cyg_profile_func_enter/exit
 │           ├── print_profiler.cpp      # PrintProfiler implementation
 │           └── detail/
+│               ├── clock.h            # Internal: ReadTimestamp + MeasureTicksPerSecond
 │               └── table.h            # Internal: FuncStats + StatsTable (not public)
 └── example/
     ├── CMakeLists.txt
@@ -295,12 +298,14 @@ malevrovich-prof/
 
 1. **`-finstrument-functions`** — the compiler injects calls to `__cyg_profile_func_enter(fn, call_site)` and `__cyg_profile_func_exit(fn, call_site)` at every function entry and exit in the instrumented target.
 
-2. **Hot-path hooks** (`instrumentation.cpp`) — on enter, the current CPU timestamp is pushed onto a small per-function inline stack and the call counter is incremented. On exit, the timestamp is popped and `total_ticks += exit_tick − enter_tick`. All state lives in an `ankerl::unordered_dense::map<void*, FuncStats>` that is pre-allocated before `main()`.
+2. **Hot-path hooks** (`instrumentation.cpp`) — on enter, the current CPU timestamp (`rdtsc` / `cntvct_el0`) is pushed onto a small per-function inline stack and the call counter is incremented. On exit, the timestamp is popped and `total_ticks += exit_tick − enter_tick`. All state lives in an `ankerl::unordered_dense::map<void*, FuncStats>` that is pre-allocated before `main()`.
 
-3. **`__attribute__((constructor))`** — `AutoInit()` runs before `main()` and reserves the hash table, so the first call to any instrumented function never triggers a rehash.
+3. **`__attribute__((constructor))`** — `AutoInit()` runs before `main()`, reserves the hash table, and calibrates the CPU frequency (see step 6).
 
 4. **`__attribute__((destructor))`** — `AutoFlush()` runs after `main()` returns and calls `Flush(*g_auto_flush_backend)` if a backend is set.
 
 5. **`Flush()`** — iterates the hash map once, builds a `std::vector<FuncStat>`, and passes it to `IProfiler::Analyze()`. The backend is entirely off the hot path.
 
-6. **Symbol resolution** — `PrintProfiler::Analyze()` calls `dladdr()` on each address to get the nearest symbol name, then `abi::__cxa_demangle()` to produce a readable C++ name.
+6. **CPU frequency calibration** (`detail/clock.h`) — `MeasureTicksPerSecond()` samples both `clock_gettime(CLOCK_MONOTONIC)` and the TSC/counter over a ~5 ms busy-wait to compute ticks-per-second. This value is stored globally and used at report time to convert raw ticks to wall-clock time.
+
+7. **Symbol resolution & time formatting** — `PrintProfiler::Analyze()` calls `dladdr()` on each address to get the nearest symbol name, then `abi::__cxa_demangle()` to produce a readable C++ name. The `time` column is auto-scaled to `ns`/`µs`/`ms`/`s` based on the hottest row so all values share the same unit.

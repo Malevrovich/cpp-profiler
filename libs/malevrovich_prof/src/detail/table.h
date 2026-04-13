@@ -26,4 +26,7 @@ using StatsTable = ankerl::unordered_dense::map<void*, FuncStats>;
 
 StatsTable& GetTable() noexcept;
 
+/// Returns the calibrated CPU ticks-per-second, or 0 if unavailable.
+uint64_t GetTicksPerSec() noexcept;
+
 }  // namespace malevrovich_prof::detail

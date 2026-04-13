@@ -1,5 +1,6 @@
 #include "malevrovich_prof/profiler.h"
 
+#include "detail/clock.h"
 #include "detail/table.h"
 #include "malevrovich_prof/print_profiler.h"
 
@@ -12,10 +13,18 @@ namespace malevrovich_prof {
 
 static detail::StatsTable g_table;
 
+// ── CPU frequency (ticks per second) ──────────────────────────────────────────
+
+static uint64_t g_ticks_per_sec = 0;
+
 namespace detail {
 
 StatsTable& GetTable() noexcept {
   return g_table;
+}
+
+uint64_t GetTicksPerSec() noexcept {
+  return g_ticks_per_sec;
 }
 
 }  // namespace detail
@@ -30,6 +39,7 @@ static IProfiler* g_auto_flush_backend = nullptr;
 
 __attribute__((constructor)) static void AutoInit() noexcept {
   g_table.reserve(4096);
+  g_ticks_per_sec = detail::MeasureTicksPerSecond();
   // Install the default auto-flush backend (PrintProfiler to stdout).
   // Stored as a static local so it lives until the destructor runs.
   static PrintProfiler s_default_printer;
