@@ -1,0 +1,78 @@
+# .clang-format — malevrovich-prof
+# Base: Google C++ Style Guide
+# https://google.github.io/styleguide/cppguide.html
+
+BasedOnStyle: Google
+
+# ── Indentation & alignment ────────────────────────────────────────────────────
+IndentWidth:                        2
+ContinuationIndentWidth:            4
+AccessModifierOffset:               -1   # "public:" at indent-1 (Google default)
+ConstructorInitializerIndentWidth:  4
+NamespaceIndentation:               None
+
+# ── Line length ────────────────────────────────────────────────────────────────
+ColumnLimit: 100
+
+# ── Braces ────────────────────────────────────────────────────────────────────
+BreakBeforeBraces: Attach            # K&R / Google style
+
+# ── Include ordering ──────────────────────────────────────────────────────────
+# Groups: related header → C system → C++ standard → other libs → project
+SortIncludes:        CaseSensitive
+IncludeBlocks:       Regroup
+IncludeCategories:
+  # C system headers  <xxx.h>
+  - Regex:    '^<[a-z_]+\.h>'
+    Priority: 2
+  # C++ standard library  <xxx>
+  - Regex:    '^<[a-z]'
+    Priority: 3
+  # Everything else (project / third-party)
+  - Regex:    '.*'
+    Priority: 1
+
+# ── Pointer / reference alignment ─────────────────────────────────────────────
+PointerAlignment:   Left             # int* p  (Google)
+ReferenceAlignment: Left
+
+# ── Spaces ────────────────────────────────────────────────────────────────────
+SpaceAfterCStyleCast:               false
+SpaceBeforeParens:                  ControlStatements
+SpaceInEmptyParentheses:            false
+SpacesInAngles:                     Never
+SpacesInContainerLiterals:          false
+SpacesInParentheses:                false
+SpacesInSquareBrackets:             false
+
+# ── Function / call formatting ─────────────────────────────────────────────────
+AllowShortFunctionsOnASingleLine:   Inline   # only trivial inline bodies
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine:       false
+AllowShortLambdasOnASingleLine:     All
+
+# ── Template / constructor ─────────────────────────────────────────────────────
+AlwaysBreakTemplateDeclarations:    Yes
+BreakConstructorInitializers:       BeforeColon
+PackConstructorInitializers:        NextLine
+
+# ── Comments ──────────────────────────────────────────────────────────────────
+ReflowComments:     true
+SpacesBeforeTrailingComments: 2
+
+# ── Trailing commas ───────────────────────────────────────────────────────────
+InsertTrailingCommas: None
+
+# ── Penalties (tune line-break decisions) ─────────────────────────────────────
+PenaltyBreakBeforeFirstCallParameter: 1
+PenaltyBreakComment:                  300
+PenaltyBreakFirstLessLess:            120
+PenaltyBreakString:                   1000
+PenaltyExcessCharacter:               1000000
+PenaltyReturnTypeOnItsOwnLine:        200
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+Cpp11BracedListStyle:   true
+DerivePointerAlignment: false
+FixNamespaceComments:   true          # adds  // namespace malevrovich_prof
+SeparateDefinitionBlocks: Leave
