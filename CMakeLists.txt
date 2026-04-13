@@ -10,3 +10,4 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # ── sub-projects ───────────────────────────────────────────────────────────────
 add_subdirectory(libs/malevrovich_prof)
 add_subdirectory(example)
+add_subdirectory(examples)
