@@ -1,15 +1,16 @@
 #include "malevrovich_prof/profiler.h"
 
-#include <memory>
+static void Fib(int n) {
+  if (n <= 1)
+    return;
+  Fib(n - 1);
+  Fib(n - 2);
+}
 
 int main() {
-  // TODO: create a concrete IProfiler backend and register it:
-  // malevrovich_prof::SetActiveProfiler(
-  //     std::make_unique<malevrovich_prof::CallGraphProfiler>());
-
-  // TODO: run workload
-
-  // TODO: malevrovich_prof::GetActiveProfiler()->Flush();
-
+  Fib(20);
+  // Stats are flushed automatically at program exit via PrintProfiler (stdout).
+  // Call malevrovich_prof::SetAutoFlush(nullptr) to disable,
+  // or malevrovich_prof::SetAutoFlush(&myBackend) to use a custom backend.
   return 0;
 }
